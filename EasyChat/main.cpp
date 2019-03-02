@@ -1,20 +1,28 @@
 #include <QApplication>
 #include <VPApplication>
-
+#include <QQmlComponent>
+#include <QQuickView>
+#include <QQuickItem>
+#include <QObject>
 #include <QQmlApplicationEngine>
 #include "client.h"
+#include "user.h"
 
 int main(int argc, char *argv[])
 {
-    Client c;
-    c.connectServer();
     QApplication app(argc, argv);
+
     VPApplication vplay;
+
+    qmlRegisterType<User>("EasyChat",1,0,"User");
+    qmlRegisterType<Client>("EasyChat",1,0,"Client");
 
     // Use platform-specific fonts instead of V-Play's default font
     vplay.setPreservePlatformFonts(true);
 
     QQmlApplicationEngine engine;
+
+
     vplay.initialize(&engine);
 
     // use this during development

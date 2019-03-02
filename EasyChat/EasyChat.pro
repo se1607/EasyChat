@@ -30,7 +30,8 @@ RESOURCES += #    resources.qrc # uncomment for publishing
 
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += main.cpp \
-    client.cpp
+    client.cpp \
+    user.cpp
 
 android {
     ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
@@ -52,7 +53,8 @@ macx {
 }
 
 HEADERS += \
-    client.h
+    client.h \
+    user.h
 
 LIBS += -lboost_system -lboost_thread -lpthread
 

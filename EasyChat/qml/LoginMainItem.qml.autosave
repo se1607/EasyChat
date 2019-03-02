@@ -6,8 +6,6 @@ Item {
 
     property bool userLoggedIn: false
     property bool userRegisterIn: false
-    property var rn:registerpage.rname
-    property var rp:registerpage.rpassword
 
     LoginPage{
         id:loginpage

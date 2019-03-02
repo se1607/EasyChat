@@ -1,11 +1,12 @@
 import QtQuick 2.0
 import VPlayApps 1.0
 import QtQuick.Layouts 1.1
+import EasyChat 1.0
 
 Page{
     id:registerPage
     title: "Register"
-    signal registerSucceeded
+    signal registerSucceeded(string msg)
     backgroundColor: Qt.rgba(0,0,0,0.75)
 
     Rectangle {
@@ -30,6 +31,20 @@ Page{
             Layout.columnSpan: 2
             Layout.alignment: Qt.AlignHCenter
             text: "Register"
+        }
+
+        AppText{
+            text: qsTr("Name")
+            font.pixelSize: sp(12)
+        }
+
+        AppTextField{
+            id: name
+            Layout.preferredWidth: dp(200)
+            showClearButton: true
+            font.pixelSize: sp(14)
+            borderColor: Theme.tintColor
+            borderWidth: !Theme.isAndroid ? dp(2) : 0
         }
 
         AppText{
@@ -74,7 +89,10 @@ Page{
                 onClicked: {
                     registerPage.forceActiveFocus()
                     console.debug("registerSucceed...")
-                    registerSucceeded()
+                    //console.debug(name.text,password.text)
+                    client.getRegisterInfo(name.text,password.text)
+                    //client.print()
+                    client.sendRegisterInfo()
                 }
             }
 

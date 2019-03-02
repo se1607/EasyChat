@@ -1,5 +1,6 @@
 import VPlayApps 1.0
 import QtQuick 2.0
+import EasyChat 1.0
 
 App {
 //    NavigationStack {
@@ -14,5 +15,11 @@ App {
 //        }
 
 //    }
-    LoginMainItem{}
+    Client {
+        id:client
+    }
+
+    LoginMainItem{
+        id:lmi
+    }
 }
