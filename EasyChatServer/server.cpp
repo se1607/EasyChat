@@ -1,5 +1,6 @@
 #include <iostream>
 #include "server.h"
+#include "user.h"
 
 typedef boost::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr;
 
@@ -9,7 +10,8 @@ boost::asio::ip::tcp::acceptor acc(service,ep);
 
 Server::Server()
 {
-
+    _userBroker = UserBroker::getInstance();
+    _userBroker->selectAllUsers();
 }
 
 void Server::acceptConnect()
@@ -33,4 +35,84 @@ void Server::receiveMessage(socket_ptr sock)
     }
     std::cout << ep.address().to_string()
               << "已连接" << std::endl;
+    while(1){
+        try {
+            char datarec[512];
+            memset(datarec,0,sizeof(char) * 512);
+            size_t len = sock->read_some(boost::asio::buffer(datarec));
+
+            std::cout << "Message from client:"
+                      << datarec << std::endl;
+            std::string s = datarec;
+            if(strlen(datarec) != 0)
+            {
+                processMessage(s,sock);
+            }
+        } catch (boost::system::system_error e)
+        {
+            std::cout << e.what() << std::endl;
+            break;
+        }
+    }
+}
+
+void Server::processMessage(std::string message, socket_ptr sock)
+{
+    std::cout << "=====Process Message======" << std::endl;
+    std::vector<std::string> mes;
+    if(message.find("_"))
+    {
+        splictString(message,mes,"_");
+    }
+    if(mes[0] == "REGISTER")
+    {
+       userRegister(mes[1],mes[2],sock);
+    }
+}
+
+void Server::userRegister(std::string n, std::string pw,socket_ptr sock)
+{
+    std::string sql = "insert into user(name,password,friends) values('"
+                        + n +"','" + pw + "','');";
+    std::cout << sql << std::endl;
+    if(_userBroker->insertUser(sql))
+    {
+        std::string message = "REGISTERSUCCEEDED";
+        auto s = message.data();
+        boost::system::error_code ec;
+        sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        if(ec)
+        {
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+            return;
+        }
+    }
+    else
+    {
+        std::string message = "REGISTERFAILED";
+        auto s = message.data();
+        boost::system::error_code ec;
+        sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        if(ec)
+        {
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+            return;
+        }
+    };
+}
+
+void Server::splictString(const std::string &s, std::vector<std::string> &v, const std::string &c)
+{
+    std::string::size_type pos1, pos2;
+    pos2 = s.find(c);
+    pos1 = 0;
+    while(std::string::npos != pos2)
+    {
+        v.push_back(s.substr(pos1, pos2-pos1));
+
+        pos1 = pos2 + c.size();
+        pos2 = s.find(c, pos1);
+    }
+    if(pos1 != s.length())
+        v.push_back(s.substr(pos1));
 }

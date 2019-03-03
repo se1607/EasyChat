@@ -4,9 +4,15 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    server.cpp
+    server.cpp \
+    relationalbroker.cpp \
+    userbroker.cpp \
+    user.cpp
 
 HEADERS += \
-    server.h
+    server.h \
+    relationalbroker.h \
+    userbroker.h \
+    user.h
 
-LIBS += -L/usr/lib -lboost_system -lboost_thread -lpthread
+LIBS += -L/usr/lib -lboost_system -lboost_thread -lpthread -lmysqlclient
