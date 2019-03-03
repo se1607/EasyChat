@@ -1,6 +1,7 @@
 #include <iostream>
 #include "server.h"
 #include "user.h"
+#include <string>
 
 typedef boost::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr;
 
@@ -33,8 +34,8 @@ void Server::receiveMessage(socket_ptr sock)
     {
         std::cout << boost::system::system_error(ec).what() << std::endl;
     }
-    std::cout << ep.address().to_string()
-              << "已连接" << std::endl;
+//    std::cout << ep.address().to_string()
+//              << "已连接" << std::endl;
     while(1){
         try {
             char datarec[512];
@@ -66,39 +67,115 @@ void Server::processMessage(std::string message, socket_ptr sock)
     }
     if(mes[0] == "REGISTER")
     {
-       userRegister(mes[1],mes[2],sock);
+        userRegister(mes[1],mes[2],sock);
+    }
+    else if(mes[0] == "LOGIN")
+    {
+        userLogin(mes[1],mes[2],sock);
     }
 }
 
 void Server::userRegister(std::string n, std::string pw,socket_ptr sock)
 {
     std::string sql = "insert into user(name,password,friends) values('"
-                        + n +"','" + pw + "','');";
+            + n +"','" + pw + "','');";
     std::cout << sql << std::endl;
-    if(_userBroker->insertUser(sql))
+
+//    std::string ssql = "select * from user where name = '" + n +"'";
+    if(!_userBroker->selectUser(n))
     {
-        std::string message = "REGISTERSUCCEEDED";
+        if(_userBroker->insertUser(sql))
+        {
+            std::string message = "REGISTERSUCCEEDED";
+            auto s = message.data();
+            boost::system::error_code ec;
+            sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+            std::cout << message << std::endl;
+            if(ec)
+            {
+                std::cout << boost::system::system_error(ec).what() << std::endl;
+                return;
+            }
+        }
+        else
+        {
+            std::string message = "REGISTERFAILED";
+            auto s = message.data();
+            boost::system::error_code ec;
+            sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+            std::cout << message << std::endl;
+            if(ec)
+            {
+                std::cout << boost::system::system_error(ec).what() << std::endl;
+                return;
+            }
+        }
+    }
+    else {
+        std::string message = "REGISTERED";
         auto s = message.data();
         boost::system::error_code ec;
         sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        std::cout << message << std::endl;
         if(ec)
         {
             std::cout << boost::system::system_error(ec).what() << std::endl;
             return;
         }
     }
-    else
+
+}
+
+void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
+{
+    boost::system::error_code ec;
+    auto ep = sock->remote_endpoint(ec);
+    if(ec)
     {
-        std::string message = "REGISTERFAILED";
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+    }
+    if(_userBroker->selectUser(n))
+    {
+        if(_userBroker->verifyPassword(n,pw))
+        {
+            std::string message = "LOGINSUCCEEDED";
+            auto s = message.data();
+            boost::system::error_code ec;
+            sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+            std::cout << message << std::endl;
+            if(ec)
+            {
+                std::cout << boost::system::system_error(ec).what() << std::endl;
+                return;
+            }
+            _userBroker->addLoginUser(n,ep.address().to_string());
+            _userBroker->printLoginUser();
+        }
+        else {
+            std::string message = "PASSWORDERROR";
+            auto s = message.data();
+            boost::system::error_code ec;
+            sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+            std::cout << message << std::endl;
+            if(ec)
+            {
+                std::cout << boost::system::system_error(ec).what() << std::endl;
+                return;
+            }
+        }
+    }
+    else{
+        std::string message = "NOACCOUNT";
         auto s = message.data();
         boost::system::error_code ec;
         sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        std::cout << message << std::endl;
         if(ec)
         {
             std::cout << boost::system::system_error(ec).what() << std::endl;
             return;
         }
-    };
+    }
 }
 
 void Server::splictString(const std::string &s, std::vector<std::string> &v, const std::string &c)

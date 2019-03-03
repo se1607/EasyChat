@@ -51,16 +51,16 @@ void UserBroker::selectAllUsers()
                 _users.push_back(User(userRows[0+i],userRows[1+i],friendsName));
             }
         }
-        for(User a : _users)
-        {
-            cout << a.name() << " "
-                 << a.password() << " ";
-            for(string t : a.friends())
-            {
-                cout << t << " ";
-            }
-            cout << endl;
-        }
+//        for(User a : _users)
+//        {
+//            cout << a.name() << " "
+//                 << a.password() << " ";
+//            for(string t : a.friends())
+//            {
+//                cout << t << " ";
+//            }
+//            cout << endl;
+//        }
         mysql_free_result(result);
         result = nullptr;
     }
@@ -94,6 +94,56 @@ bool UserBroker::insertUser(const std::string &sql)
     if(mysql != nullptr)
         mysql_close(mysql);
     mysql_library_end();
+}
+
+bool UserBroker::selectUser(const std::string &n)
+{
+    _users.clear();
+    selectAllUsers();
+   for(User t : _users)
+   {
+       if(t.name() == n)
+       {
+           return true;
+       }
+   }
+   return false;
+}
+
+bool UserBroker::verifyPassword(const std::string n, const std::string pw)
+{
+    for(User t : _users)
+    {
+        if(t.name() == n)
+        {
+            if(t.password() == pw)
+                return true;
+        }
+    }
+    return false;
+}
+
+void UserBroker::addLoginUser(std::string n, std::string ip)
+{
+    for(User t : _users)
+    {
+        if(t.name() == n)
+        {
+           User a = t;
+           a.setIp(ip);
+           _loginUsers.push_back(a);
+        }
+    }
+}
+
+void UserBroker::printLoginUser()
+{
+    for(User t : _loginUsers)
+    {
+        std::cout << "-----------------" << std::endl;
+        std::cout << t.name() << " " << t.ip() << " 在线" << std::endl;
+    }
+    std::cout << _loginUsers.size() << std::endl;
 }
 
 void UserBroker::splictString(const std::string &s, std::vector<std::string> &v, const std::string &c)

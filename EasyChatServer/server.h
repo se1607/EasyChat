@@ -19,6 +19,7 @@ public:
     void processMessage(std::string message,socket_ptr sock);
 
     void userRegister(std::string n, std::string pw, socket_ptr sock);
+    void userLogin(std::string n, std::string pw, socket_ptr sock);
 
     void splictString(const std::string& s, std::vector<std::string>& v, const std::string& c);
 

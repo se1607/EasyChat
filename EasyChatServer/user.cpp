@@ -32,3 +32,13 @@ std::vector<std::string> User::friends() const
 {
     return m_friends;
 }
+
+std::string User::ip() const
+{
+    return m_ip;
+}
+
+void User::setIp(const std::string &ip)
+{
+    m_ip = ip;
+}

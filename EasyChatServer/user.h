@@ -16,10 +16,14 @@ public:
 
     std::vector<std::string> friends() const;
 
+    std::string ip() const;
+    void setIp(const std::string &ip);
+
 private:
     std::string m_name;
     std::string m_password;
     std::vector<std::string> m_friends;
+    std::string m_ip;
 };
 
 #endif // USER_H
