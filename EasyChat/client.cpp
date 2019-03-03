@@ -40,10 +40,16 @@ void Client::getRegisterInfo(const QString& n,const QString& pw)
     registerPassword = pw;
 }
 
+void Client::getLoginInfo(const QString &n, const QString &pw)
+{
+    loginName = n;
+    loginPassword = pw;
+}
+
 void Client::sendRegisterInfo()
 {
     std::string message = "REGISTER_" + registerName.toStdString()
-                           + "_" + registerPassword.toStdString();
+            + "_" + registerPassword.toStdString();
     auto s = message.data();
     boost::system::error_code ec;
     sock.write_some(boost::asio::buffer(s,strlen(s)),ec);
@@ -56,25 +62,41 @@ void Client::sendRegisterInfo()
     receiveMessage();
 }
 
+void Client::sendLoginInfo()
+{
+    std::string message = "LOGIN_" + loginName.toStdString()
+                        + "_" + loginPassword.toStdString();
+    auto s = message.data();
+    boost::system::error_code ec;
+    sock.write_some(boost::asio::buffer(s,strlen(s)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+        return;
+    }
+
+    receiveMessage();
+}
+
 void Client::receiveMessage()
 {
     boost::system::error_code ec;
-    while(1){
-        try {
-            char data[512];
-            memset(data,0,sizeof(char) * 512);
-            size_t len = sock.read_some(boost::asio::buffer(data));
-            std::cout << "Message from server:"
-                      << data << std::endl;
-            std::string s = data;
-            if(strlen(data) != 0){
-                processMessage(s);
-            }
-        }catch (boost::system::system_error e)
-        {
-            std::cout << e.what() << std::endl;
-            break;
+
+    try {
+        char data[512];
+        memset(data,0,sizeof(char) * 512);
+        size_t len = sock.read_some(boost::asio::buffer(data));
+        std::string s = data;
+//        std::cout << "Message from server:"
+//                  << s << std::endl;
+
+        if(strlen(data) != 0){
+            processMessage(s);
+        }else{
+            std::cout << "false";
         }
+    }catch (boost::system::system_error e)
+    {
+        std::cout << e.what() << std::endl;
     }
 }
 
@@ -82,9 +104,16 @@ void Client::receiveMessage()
 void Client::processMessage(std::string message)
 {
     if(message == "REGISTERSUCCEEDED"){
-        std::cout << "Succeeded" << std::endl;
-    }
-    if(message == "REGISTERFAILED"){
-        std::cout << "Failed" << std::endl;
+        emit registersucceeded();
+    }else if(message == "REGISTERFAILED"){
+        emit registerfailed();
+    }else if(message == "REGISTERED"){
+        emit registered();
+    }else if(message == "LOGINSUCCEEDED"){
+        emit logined();
+    }else if(message == "NOACCOUNT"){
+        emit loginnameerror();
+    }else if(message == "PASSWORDERROR"){
+        emit loginpassworderror();
     }
 }

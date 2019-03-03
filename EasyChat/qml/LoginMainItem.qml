@@ -6,8 +6,6 @@ Item {
 
     property bool userLoggedIn: false
     property bool userRegisterIn: false
-    property var rn:registerpage.rname
-    property var rp:registerpage.rpassword
 
     LoginPage{
         id:loginpage
@@ -29,7 +27,7 @@ Item {
         visible: opacity > 0
         enabled: visible
         opacity: userRegisterIn ? 1 : 0
-        onRegisterSucceeded:{
+        onReturnToLogin:{
             userRegisterIn = false
             userLoggedIn = false
         }

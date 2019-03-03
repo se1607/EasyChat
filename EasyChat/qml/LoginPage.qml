@@ -9,6 +9,22 @@ Page{
     signal registering
     backgroundColor: Qt.rgba(0,0,0,0.75)
 
+    Connections {
+        target:client
+        onLogined:{
+            reminder.text = "Logined"
+            loginSucceeded()
+        }
+        onLoginnameerror:{
+            reminder.text = "User doesn't exist"
+            reminder.visible = true;
+        }
+        onLoginpassworderror:{
+            reminder.text = "Password error"
+            reminder.visible = true;
+        }
+    }
+
     Rectangle {
       id: loginForm
       anchors.centerIn: parent
@@ -74,7 +90,8 @@ Page{
                 onClicked: {
                     loginPage.forceActiveFocus()
                     console.debug("logging in...")
-                    loginSucceeded()
+                    client.getLoginInfo(account.text,password.text)
+                    client.sendLoginInfo()
                 }
             }
 
@@ -87,6 +104,13 @@ Page{
                     console.log("registering...")
                     registering()
                 }
+            }
+            AppText {
+                id:reminder
+                text:""
+                font.pixelSize: 16
+                visible:false
+                color:"red"
             }
         }
     }
