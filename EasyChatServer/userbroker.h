@@ -5,6 +5,7 @@
 #include <map>
 
 class User;
+class Conversation;
 
 class UserBroker : public RelationalBroker
 {
@@ -18,8 +19,22 @@ public:
     bool insertUser(const std::string &sql);
     bool selectUser(const std::string &n);
     bool verifyPassword(const std::string n,const std::string pw);
+
+    bool selectLoginFriend(const std::string n);
+
+    std::string friendList(const std::string n);
+    std::string friendIp(const std::string n);
+
     void addLoginUser(std::string n,std::string ip);
+    void deletLoginUser(std::string n);
     void printLoginUser();
+
+    bool addConversation(std::string send,std::string mes,std::string recieve);
+    void getConversation();
+
+    std::vector<Conversation> getTheUserMessage(std::string name);
+    bool changeMessageStatus(std::string name);
+
     void splictString(const std::string& s, std::vector<std::string>& v, const std::string& c);
 
     std::vector<User> getUsers() const;
@@ -29,6 +44,7 @@ private:
     static std::shared_ptr<UserBroker> _instance;
     std::vector<User> _users;
     std::vector<User> _loginUsers;
+    std::vector<Conversation> _conversation;
 };
 
 #endif // USERBROKER_H

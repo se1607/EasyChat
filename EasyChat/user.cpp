@@ -5,17 +5,17 @@ User::User(QObject *parent):QObject(parent),m_name(""),m_password("")
 
 }
 
-QQmlListProperty<User> User::friends()
-{
-    return QQmlListProperty<User>(this,m_friends);
-}
+//QQmlListProperty<QString> User::friends()
+//{
+//    return QQmlListProperty<QString>(this,m_friends);
+//}
 
-void User::appendFriend(User *u)
-{
-    m_friends.append(u);
-}
+//void User::appendFriend(QString *u)
+//{
+//    m_friends.append(u);
+//}
 
-void User::clearFriend(User *u)
-{
-    m_friends.removeOne(u);
-}
+//void User::clearFriend(QString *u)
+//{
+//    m_friends.removeOne(u);
+//}

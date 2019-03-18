@@ -7,12 +7,14 @@ SOURCES += main.cpp \
     server.cpp \
     relationalbroker.cpp \
     userbroker.cpp \
-    user.cpp
+    user.cpp \
+    conversation.cpp
 
 HEADERS += \
     server.h \
     relationalbroker.h \
     userbroker.h \
-    user.h
+    user.h \
+    conversation.h
 
 LIBS += -L/usr/lib -lboost_system -lboost_thread -lpthread -lmysqlclient

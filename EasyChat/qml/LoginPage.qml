@@ -8,12 +8,15 @@ Page{
     signal loginSucceeded
     signal registering
     backgroundColor: Qt.rgba(0,0,0,0.75)
+    property var f: []
 
     Connections {
         target:client
         onLogined:{
             reminder.text = "Logined"
             loginSucceeded()
+            //f = client.getFriends()
+            //console.log(f[0])
         }
         onLoginnameerror:{
             reminder.text = "User doesn't exist"
