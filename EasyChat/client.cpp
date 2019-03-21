@@ -110,10 +110,47 @@ QStringList Client::getFriendMessages(QString name)
 {
     for(int i = 0; i != conversations.size();i++)
     {
-        if(name == conversations[i].getName())
+        if(name == conversations[i].getName()){
             return conversations[i].getMesageList();
+            int i = conversations[i].getMesageList().size();
+            std::cout << "c++messagecount: " << i << std::endl;
+        }
     }
-//    return;
+    //    return;
+}
+
+
+QStringList Client::getRedordMessage(QString name)
+{
+    QStringList mes;
+    for(int i = 0; i != conversations.size();i++)
+    {
+        if(name == conversations[i].getName()){
+            std::vector<Message> tmp = conversations[i].getConverRecord();
+            for(int i = 0; i != tmp.size();i++)
+            {
+                mes.append(tmp[i].getMess());
+                if(tmp[i].getWho())
+                    mes.append("1");
+                else {
+                    mes.append("0");
+                }
+            }
+            return mes;
+        }
+    }
+    return mes;
+}
+
+void Client::getRecord(QString name, QString s,bool b)
+{
+    for(int i = 0; i != conversations.size();i++)
+    {
+        if(name == conversations[i].getName()){
+            conversations[i].appendRecod(s,b);
+            std::cout << "c++ rec: " << s.toStdString() << b << std::endl;
+        }
+    }
 }
 
 void Client::getSendMessage(const QString &n1, const QString &n2)
@@ -127,6 +164,29 @@ void Client::getSendMessage(const QString &n1, const QString &n2)
     if(ec){
         std::cout << boost::system::system_error(ec).what() << std::endl;
     }
+
+    QStringList mess;
+    mess.append(n1);
+
+    if(conversationExist(n2)){
+        for(int i = 0; i != conversations.size();i++)
+        {
+            if(n2 == conversations[i].getName())
+            {
+                conversations[i].setMesageList(mess);
+                conversations[i].appendRecod(n1,true);
+            }
+        }
+        //        emit newmessage();
+    }
+    else{
+        Conversation c;
+        c.setName(n2);
+        c.setMesageList(mess);
+        c.appendRecod(n1,true);
+        conversations.push_back(c);
+    }
+    emit addConversations();
 }
 
 void Client::receiveMessage()
@@ -242,18 +302,35 @@ void Client::processMessage(std::string message)
     if(v[0] == "RECIEVEMESSAGEFROM"){
 
         std::cout << v[1] <<  " send " << v[2]  << std::endl;
-        Conversation c;
-        c.setName(QString::fromStdString(v[1]));
-        QStringList mess;
-        for(int i = 2; i != v.size();i++)
-        {
-            mess.append(QString::fromStdString(v[i]));
-        }
-        c.setMesageList(mess);
-        conversations.push_back(c);
-        emit addConversations();
-    }
 
+        if(conversationExist(QString::fromStdString(v[1]))){
+            for(int i = 0; i != conversations.size();i++)
+            {
+                //单条消息存储
+                QString friendname = QString::fromStdString(v[1]);
+                if(friendname == conversations[i].getName()){
+                    conversations[i].appendMessage((QString::fromStdString(v[i+2])));
+                    conversations[i].appendRecod((QString::fromStdString(v[i+2])),false);
+                }
+            }
+            emit addConversations();
+            emit newmessage();
+        }
+        else {
+            Conversation c;
+            QStringList mess;
+            for(int i = 2; i != v.size();i++)
+            {
+                mess.append(QString::fromStdString(v[i]));
+                c.appendRecod(QString::fromStdString(v[i]),false);
+            }
+            c.setName(QString::fromStdString(v[1]));
+            c.setMesageList(mess);
+            conversations.push_back(c);
+            emit addConversations();
+        }
+
+    }
     if(message == "REGISTERSUCCEEDED"){
         emit registersucceeded();
     }
@@ -272,4 +349,14 @@ void Client::processMessage(std::string message)
     else if(message == "SENDMESSAGE"){
         emit sendmessageSusseeded();
     }
+}
+
+bool Client::conversationExist(QString n)
+{
+    for(int i = 0; i != conversations.size();i++)
+    {
+        if(n == conversations[i].getName())
+            return true;
+    }
+    return false;
 }

@@ -48,7 +48,7 @@ Item {
                    NavigationStack {
                        //splitView: tablet
                        ConversationListPage {
-
+                            id:converlist
                        }
                    }
                } // navigation item

@@ -8,46 +8,60 @@ ListPage {
 
 
     property var newMsgs: []
+    property var messCom: []
 
     property int numRepeats: 1
 
     readonly property int numLoadedItems: blindTextMsgs.length
-    property var blindTextMsgs: [
-//            { text: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration.", me: false },
-//            { text: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.", me: true },
-//            { text: "All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words.", me: false },
-        //    { text: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration.", me: false },
-        //    { text: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.", me: true },
-        //    { text: "All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words.", me: false }
-    ]
+    property var blindTextMsgs: [] //消息记录
+    property var sendMess: []
+
+    Connections{
+        target: client
+        onNewmessage:{
+            messCom = client.getFriendMessages(person)
+            newMsgs.push({text:messCom[messCom.length-1],me:false})
+            blindTextMsgs.push({text:messCom[messCom.length-1],me:false})
+            loadTimer.start()
+        }
+    }
+
 
     model: {
-        var model = newMsgs
-        for(var i = 0; i < numRepeats; i++) {
-            model = blindTextMsgs.concat(model)
-        }
-//        console.log(lp.visible)
-        return model
+
+        blindTextMsgs = blindTextMsgs.concat(newMsgs)
+        return blindTextMsgs
     }
+
+    function returnNewMesModel()
+    {
+
+        return blindTextMsgs
+    }
+
+
+
 
     Component.onCompleted: listView.positionViewAtEnd()
 
     listView.backgroundColor: "white"
     listView.anchors.bottomMargin: inputBox.height
-//    listView.header: VisibilityRefreshHandler {
-//        onRefresh: loadTimer.start()
-//    }
+
+    //    listView.header: VisibilityRefreshHandler {
+    //        onRefresh: loadTimer.start()
+    //    }
 
     //fake loading with timer
-//    Timer {
-//        id: loadTimer
-//        interval: 2000
-//        onTriggered: {
-//            var pos = listView.getScrollPosition()
-//            numRepeats++
-//            listView.restoreScrollPosition(pos, numLoadedItems)
-//        }
-//    }
+    Timer {
+        id: loadTimer
+        interval: 10
+        onTriggered: {
+
+            model = returnNewMesModel()
+            listView.positionViewAtEnd()
+        }
+    }
+
 
     delegate: Item {
         id: bubble
@@ -110,9 +124,10 @@ ListPage {
         verticalAlignment: Text.AlignVCenter
 
         onAccepted: {
-            newMsgs = newMsgs.concat({ text: inputBox.text,me: true})
-            console.log(person)
-            client.getSendMessage(inputBox.text,linkpage.tmpName)
+            sendMess.push({text: inputBox.text,me: true})
+            blindTextMsgs.push({text: inputBox.text,me: true})
+            loadTimer.start()
+            client.getSendMessage(inputBox.text,person)
             inputBox.text = ""
             listView.positionViewAtEnd()
         }

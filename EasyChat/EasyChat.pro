@@ -32,7 +32,8 @@ RESOURCES += #    resources.qrc # uncomment for publishing
 SOURCES += main.cpp \
     client.cpp \
     user.cpp \
-    conversation.cpp
+    conversation.cpp \
+    message.cpp
 
 android {
     ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
@@ -56,7 +57,8 @@ macx {
 HEADERS += \
     client.h \
     user.h \
-    conversation.h
+    conversation.h \
+    message.h
 
 LIBS += -lboost_system -lboost_thread -lpthread
 

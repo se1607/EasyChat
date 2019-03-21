@@ -21,15 +21,21 @@ public:
     Q_INVOKABLE void connectServer();
     Q_INVOKABLE void getLoginInfo(const QString &n, const QString &pw);
     Q_INVOKABLE void sendLoginInfo();
-    Q_INVOKABLE void getSendMessage(const QString &s, const QString &n2);
+    Q_INVOKABLE void getSendMessage(const QString &s, const QString &n2);  //从qml获取要发送的消息到c++
     Q_INVOKABLE void exitConversation();
+
     Q_INVOKABLE QVariant getConversationcount();
-    Q_INVOKABLE void getConversationName();
-    Q_INVOKABLE QStringList getFriendMessages(QString name);
+    Q_INVOKABLE void getConversationName();  //获取聊天的好友名
+    Q_INVOKABLE QStringList getFriendMessages(QString name); //获取和好友聊天的消息记录
+    Q_INVOKABLE QStringList getRedordMessage(QString name);
+
+    void getRecord(QString name, QString s, bool b);
 
     void receiveMessage();
     void conversationWait();
     void processMessage(std::string message);
+
+    bool conversationExist(QString n);
 
     void splictString(std::string &s,std::vector<std::string> &v, const std::string &c);
 
@@ -50,15 +56,17 @@ signals:
     void sendmessageSusseeded();
     void addConversations();
     void friendmessagesChanged();
+    void newmessage();
+
 private:
     QString registerName;
     QString registerPassword;
     QString loginName;
     QString loginPassword;
     QStringList friendList;
-    std::vector<Conversation> conversations;
-    QStringList conversationList;
-    QStringList friendMessages;
+    std::vector<Conversation> conversations;  //c++端读到所有会话
+    QStringList conversationList;   //聊天的好友名
+    QStringList friendMessages;   //和好友聊天的消息记录
 };
 
 #endif // CLIENT_H
