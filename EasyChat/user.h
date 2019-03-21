@@ -8,7 +8,7 @@ class User: public QObject
     Q_OBJECT
     Q_PROPERTY(QString name READ name WRITE setName)
     Q_PROPERTY(QString password READ password WRITE setPassword)
-    Q_PROPERTY(QQmlListProperty<User> friends READ friends)
+    //Q_PROPERTY(QQmlListProperty<User> friends READ friends)
 public:
     User(QObject *parent = 0);
 
@@ -26,19 +26,19 @@ public:
         m_password = p;
     }
 
-    QQmlListProperty<User> friends();
+    //QQmlListProperty<QString> friends();
 
-    void appendFriend(User* u);
-    void clearFriend(User* u);
-public slots:
-    void cppSlot(const QString &msg)
-    {
-        qDebug() << msg;
-    }
+//    void appendFriend(QString *u);
+//    void clearFriend(QString *u);
+//public slots:
+//    void cppSlot(const QString &msg)
+//    {
+//        qDebug() << msg;
+//    }
 private:
     QString m_name;
     QString m_password;
-    QList<User *> m_friends;
+    //QList<QString *> m_friends;
 };
 
 #endif // USER_H

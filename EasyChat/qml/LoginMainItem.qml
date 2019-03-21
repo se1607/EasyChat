@@ -13,7 +13,9 @@ Item {
         visible: opacity > 0
         enabled: visible
         opacity: userLoggedIn ? 0 : 1
-        onLoginSucceeded: userLoggedIn = true
+        onLoginSucceeded:{
+            userLoggedIn = true
+        }
         onRegistering: {
             userRegisterIn = true
             userLoggedIn = true
@@ -45,8 +47,8 @@ Item {
 
                    NavigationStack {
                        //splitView: tablet
-                       FriendListPage {
-                           // onLogoutClicked: userLoggedIn = false
+                       ConversationListPage {
+
                        }
                    }
                } // navigation item
@@ -56,7 +58,9 @@ Item {
                    icon: IconType.user
 
                    NavigationStack {
-                       LinkManPage{}
+                       LinkManPage{
+                           id:linkpage
+                       }
                    }
                } // navigation item
 

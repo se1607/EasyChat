@@ -31,7 +31,8 @@ RESOURCES += #    resources.qrc # uncomment for publishing
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += main.cpp \
     client.cpp \
-    user.cpp
+    user.cpp \
+    conversation.cpp
 
 android {
     ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
@@ -54,7 +55,8 @@ macx {
 
 HEADERS += \
     client.h \
-    user.h
+    user.h \
+    conversation.h
 
 LIBS += -lboost_system -lboost_thread -lpthread
 
@@ -64,5 +66,5 @@ DISTFILES += \
     qml/RegisterPage.qml \
     qml/ConversationPage.qml \
     qml/DynamicPage.qml \
-    qml/FriendListPage.qml \
-    qml/LinkManPage.qml
+    qml/LinkManPage.qml \
+    qml/ConversationListPage.qml
