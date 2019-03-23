@@ -29,7 +29,7 @@ public:
     Q_INVOKABLE QStringList getFriendMessages(QString name); //获取和好友聊天的消息记录
     Q_INVOKABLE QStringList getRedordMessage(QString name);
 
-    void getRecord(QString name, QString s, bool b);
+//    void getRecord(QString name, QString s, bool b);
 
     void receiveMessage();
     void conversationWait();
@@ -38,6 +38,10 @@ public:
     bool conversationExist(QString n);
 
     void splictString(std::string &s,std::vector<std::string> &v, const std::string &c);
+
+    void mkdirFile(std::string userName);
+    void readConversation();
+    std::vector<std::string> getFiles(std::string path);
 
     QStringList friendlist();
 

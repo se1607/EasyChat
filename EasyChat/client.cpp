@@ -1,6 +1,9 @@
 #include <iostream>
 #include "client.h"
 #include <thread>
+#include <fstream>
+#include <sys/io.h>
+#include <dirent.h>
 
 boost::asio::io_service service;
 boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("10.253.128.111"),PORT);
@@ -142,16 +145,16 @@ QStringList Client::getRedordMessage(QString name)
     return mes;
 }
 
-void Client::getRecord(QString name, QString s,bool b)
-{
-    for(int i = 0; i != conversations.size();i++)
-    {
-        if(name == conversations[i].getName()){
-            conversations[i].appendRecod(s,b);
-            std::cout << "c++ rec: " << s.toStdString() << b << std::endl;
-        }
-    }
-}
+//void Client::getRecord(QString name, QString s,bool b)
+//{
+//    for(int i = 0; i != conversations.size();i++)
+//    {
+//        if(name == conversations[i].getName()){
+//            conversations[i].appendRecod(s,b);
+//            std::cout << "c++ rec: " << s.toStdString() << b << std::endl;
+//        }
+//    }
+//}
 
 void Client::getSendMessage(const QString &n1, const QString &n2)
 {
@@ -174,7 +177,8 @@ void Client::getSendMessage(const QString &n1, const QString &n2)
             if(n2 == conversations[i].getName())
             {
                 conversations[i].setMesageList(mess);
-                conversations[i].appendRecod(n1,true);
+                conversations[i].appendRecod(n1,true,loginName.toStdString(),n2.toStdString(),loginName.toStdString());
+                //                writeFile(loginName.toStdString(),n2.toStdString(),n1.toStdString());
             }
         }
         //        emit newmessage();
@@ -183,7 +187,8 @@ void Client::getSendMessage(const QString &n1, const QString &n2)
         Conversation c;
         c.setName(n2);
         c.setMesageList(mess);
-        c.appendRecod(n1,true);
+        c.appendRecod(n1,true,loginName.toStdString(),n2.toStdString(),loginName.toStdString());
+        //        writeFile(loginName.toStdString(),n2.toStdString(),n1.toStdString());
         conversations.push_back(c);
     }
     emit addConversations();
@@ -261,6 +266,110 @@ void Client::splictString(std::string &s, std::vector<std::string> &v, const std
         v.push_back(s.substr(pos1));
 }
 
+void Client::mkdirFile(std::string userName)
+{
+    std::string name = userName;
+    std::string command = "mkdir " + name;
+    system(command.c_str());
+    std::cout << "创建文件夹成功" << std::endl;
+}
+
+void Client::readConversation()
+{
+    std::string path = "./" + loginName.toStdString();
+    std::vector<std::string> files;
+    files = getFiles(path);
+    if(files.empty())
+        return;
+
+    for(int i = 0; i != files.size();i++)
+    {
+        Conversation c;
+        c.setName(QString::fromStdString(files[i]));
+
+        //读消息
+        std::cout << "读消息： " << std::endl;
+        std::string fileName = path + "/" + files[i];
+        std::cout << fileName << std::endl;
+        std::ifstream infile(fileName.data());
+        std::string mes;
+        std::vector<std::string> messages; //存聊天记录的消息
+        while(infile >> mes)
+        {
+            std::string tmp = mes;
+            std::cout << mes << std::endl;
+            messages.push_back(tmp);
+        }
+
+        std::vector<Message> allmess;
+        for(int i = 0; i != messages.size();i+=3)
+        {
+            Message m;
+            m.setMess(QString::fromStdString(messages[2+i]));
+            if(messages[i] == loginName.toStdString())
+            {
+                m.setWho(true);
+            }
+            else {
+                m.setWho(false);
+            }
+            allmess.push_back(m);
+        }
+        c.setConverRecord(allmess);
+        if(conversations.empty())
+        {
+            conversations.push_back(c);
+        }
+        else{
+            for(int i = 0;i != conversations.size();i++)
+            {
+                QString tmp1 = conversations[i].getName();
+                if(files[i] != tmp1.toStdString()){
+                    conversations.push_back(c);
+                }
+            }
+        }
+    }
+    if(!conversations.empty()){
+//        std::cout << "buweikong" << std::endl;
+        emit addConversations();
+    }
+}
+
+std::vector<std::string> Client::getFiles(std::string path)
+{
+    std::vector<std::string> files;
+    struct stat s;
+    lstat(path.data() , &s );
+    if( ! S_ISDIR( s.st_mode ) )
+    {
+        std::cout <<"dir_name is not a valid directory !"<< std::endl;
+        //        return;
+    }
+
+    struct dirent * filename;    // return value for readdir()
+    DIR * dir;                   // return value for opendir()
+    dir = opendir(path.data());
+    if( NULL == dir )
+    {
+        std::cout<<"Can not open dir "<< path << std::endl;
+        //        return;
+    }
+    std::cout <<"Successfully opened the dir !" << std::endl;
+
+    /* read all the files in the dir ~ */
+    while( ( filename = readdir(dir) ) != NULL )
+    {
+        if( strcmp( filename->d_name , "." ) == 0 ||
+                strcmp( filename->d_name , "..") == 0    )
+            continue;
+        std::string name(filename ->d_name);
+        std::cout << name << std::endl;
+        files.push_back(name);
+    }
+    return files;
+}
+
 QStringList Client::friendlist()
 {
     return friendList;
@@ -296,11 +405,14 @@ void Client::processMessage(std::string message)
         emit logined();
         emit friendlistChanged();
         receiveMessage();
+        mkdirFile(loginName.toStdString());
+        readConversation();
         std::thread t(&Client::conversationWait,this);
         t.detach();
     }
     if(v[0] == "RECIEVEMESSAGEFROM"){
 
+        mkdirFile(loginName.toStdString());
         std::cout << v[1] <<  " send " << v[2]  << std::endl;
 
         if(conversationExist(QString::fromStdString(v[1]))){
@@ -310,7 +422,8 @@ void Client::processMessage(std::string message)
                 QString friendname = QString::fromStdString(v[1]);
                 if(friendname == conversations[i].getName()){
                     conversations[i].appendMessage((QString::fromStdString(v[i+2])));
-                    conversations[i].appendRecod((QString::fromStdString(v[i+2])),false);
+                    conversations[i].appendRecod((QString::fromStdString(v[i+2])),false,v[1],loginName.toStdString(),loginName.toStdString());
+                    //                    writeFile(v[1],loginName.toStdString(),v[i+2]);
                 }
             }
             emit addConversations();
@@ -322,7 +435,8 @@ void Client::processMessage(std::string message)
             for(int i = 2; i != v.size();i++)
             {
                 mess.append(QString::fromStdString(v[i]));
-                c.appendRecod(QString::fromStdString(v[i]),false);
+                c.appendRecod(QString::fromStdString(v[i]),false,v[1],loginName.toStdString(),loginName.toStdString());
+                //                writeFile(v[1],loginName.toStdString(),v[i]);
             }
             c.setName(QString::fromStdString(v[1]));
             c.setMesageList(mess);

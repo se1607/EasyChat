@@ -46,7 +46,7 @@ Page {
             id:lp
             newMsgs: allMessage
             person: tmpname
-            onVisibleChanged: {c
+            onVisibleChanged: {
                 if(lp.visible === false){
                     client.exitConversation()
                 }

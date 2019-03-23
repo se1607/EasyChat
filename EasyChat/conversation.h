@@ -19,12 +19,16 @@ public:
 
     void appendMessage(QString s);
 
-    void appendRecod(QString s,bool b);
+    void appendRecod(QString s, bool b, std::string sendName, std::string recieve,std::string loginName);
 
     std::vector<Message> getConverRecord() const;
 
+    void setConverRecord(const std::vector<Message> &value);
+
+    void writeFile(std::string sendname, std::string recievename, std::string message,std::string loginName);
+
 private:
-    QString name;
+    QString friendname;
     QStringList mesageList;
     std::vector<Message> converRecord;
 };
