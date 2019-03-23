@@ -91,6 +91,13 @@ std::string Server::processMessage(std::string message, socket_ptr sock)
     }else if(mes[0] == "EXITCONVERSATION"){
         std::cout << "exit" << std::endl;
         return "EXIT";
+    }else if(mes[0] == "FINDFRIEND"){
+        addfriend(mes[1],mes[2]);
+    }else if(mes[0] == "ADDFRIEND"){
+        acceptFriend(mes[1],mes[2]);
+    }else if (mes[0] == "QUIT") {
+        _userBroker->deletLoginUser(mes[1]);
+        _userBroker->printLoginUser();
     }
     return " ";
 }
@@ -157,6 +164,21 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
     }
     if(_userBroker->selectUser(n))
     {
+        if(_userBroker->userLogined(n))
+        {
+            std::string message = "LOGGINED";
+            auto s = message.data();
+            boost::system::error_code ec;
+            sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+            std::cout << message << std::endl;
+            if(ec)
+            {
+                std::cout << boost::system::system_error(ec).what() << std::endl;
+                return;
+            }
+            return;
+        }
+
         if(_userBroker->verifyPassword(n,pw))
         {
 
@@ -164,6 +186,7 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
             std::cout << friends << std::endl;
             std::string message = "LOGINSUCCEEDED_";
             message += friends;
+            message += "_";
             auto s = message.data();
 
             boost::system::error_code ec;
@@ -174,6 +197,48 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
                 std::cout << boost::system::system_error(ec).what() << std::endl;
                 return;
             }
+
+            //查看是否有好友请求
+            if(!_friendRequest.empty())
+            {
+                std::string mes = "FRIENDREQUEST";
+                bool have = false;
+                for(int i = 0; i != _friendRequest.size();i++)
+                {
+                    std::vector<std::string> names;
+                    splictString(_friendRequest[i],names,"_");
+
+                    if(names[0] == n)
+                    {
+                        mes += "_" + names[1];
+                        have = true;
+                        _friendRequest[i] = "1";
+                    }
+                }
+                std::vector<std::string> change;
+                for(int i = 0; i != _friendRequest.size();i++)
+                {
+                    if(_friendRequest[i] != "1")
+                    {
+                        change.push_back(_friendRequest[i]);
+                    }
+                }
+                _friendRequest = change;
+
+                if(have)
+                {
+                    auto s = mes.data();
+                    boost::system::error_code ec;
+                    sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+                    std::cout << mes << std::endl;
+                    if(ec)
+                    {
+                        std::cout << boost::system::system_error(ec).what() << std::endl;
+                        return;
+                    }
+                }
+            }
+
             _userBroker->addLoginUser(n,ep.address().to_string());
             _userBroker->printLoginUser();
 
@@ -189,6 +254,7 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
             {
                 noMessage(sock);
             }
+
         }
         else {
             std::string message = "PASSWORDERROR";
@@ -295,7 +361,7 @@ void Server::tranfserMessage(std::vector<Conversation> mes,socket_ptr sock)
             boost::system::error_code ec;
 
             auto iter = _sock.find(tmp[1]);
-//            tellFriendRecieve(iter->second);
+            //            tellFriendRecieve(iter->second);
 
             iter->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
             std::cout << message << std::endl;
@@ -415,7 +481,7 @@ bool Server::waitMessage(socket_ptr sock,std::string n)
 
 void Server::noMessage(socket_ptr sock)
 {
-    std::string message = "NOMESSAGE";
+    std::string message = "*NOMESSAGE";
     auto s = message.data();
     boost::system::error_code ec;
     sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
@@ -424,6 +490,67 @@ void Server::noMessage(socket_ptr sock)
     {
         std::cout << boost::system::system_error(ec).what() << std::endl;
         return;
+    }
+}
+
+void Server::addfriend(std::string friendname, std::string requestname)
+{
+    if(_userBroker->selectUser(friendname))
+    {
+        if(_userBroker->selectLoginFriend(friendname))
+        {
+            std::string mes = "FRIENDREQUEST_" + requestname;
+            mes += "_";
+            auto s = mes.data();
+            boost::system::error_code ec;
+            auto it = _sock.find(friendname);
+            it->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+            std::cout << mes << std::endl;
+            if(ec)
+            {
+                std::cout << boost::system::system_error(ec).what() << std::endl;
+                return;
+            }
+        }
+        else
+        {
+            std::string s = friendname + "_" + requestname;
+            _friendRequest.push_back(s);
+        }
+    }
+    else{
+        std::string mes = "FRIENDONTEXIST";
+        auto s = mes.data();
+        boost::system::error_code ec;
+        auto it = _sock.find(requestname);
+        it->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        std::cout << mes << std::endl;
+        if(ec)
+        {
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+            return;
+        }
+
+    }
+}
+
+void Server::acceptFriend(std::string friendname, std::string requestname)
+{
+    if(_userBroker->addFriend(friendname,requestname))
+    {
+        std::string mes = "FRIENDACCEPT_";
+        mes += requestname;
+        auto s = mes.data();
+        boost::system::error_code ec;
+        auto it = _sock.find(friendname);
+        it->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        std::cout << mes << std::endl;
+        if(ec)
+        {
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+            return;
+        }
+        std::cout << "tianjia haoyou " << std::endl;
     }
 }
 

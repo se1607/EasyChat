@@ -145,6 +145,75 @@ QStringList Client::getRedordMessage(QString name)
     return mes;
 }
 
+void Client::addFriend(QString name)
+{
+    bool exist = false;
+    for(int i = 0;i != friendList.size();i++)
+    {
+        if(name == friendList[i])
+            exist = true;
+    }
+
+    if(name == loginName)
+    {
+        emit addself();
+    }
+    else if(exist)
+    {
+        emit friendExist();
+    }
+    else {
+        std::string message = "FINDFRIEND_" + name.toStdString() + "_" + loginName.toStdString();
+        std::cout <<  message << std::endl;
+        auto s = message.data();
+        boost::system::error_code ec;
+        sock.write_some(boost::asio::buffer(s,strlen(s)),ec);
+        if(ec){
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+        }
+        emit sentFriendRequest();
+    }
+
+}
+
+void Client::refuseAddDriend(QString name)
+{
+    QStringList tmp;
+   for(int i = 0;i != newFriends.size();i++)
+   {
+       if(name != newFriends[i])
+           tmp.append(newFriends[i]);
+   }
+   newFriends = tmp;
+   emit newfriendsChanged();
+}
+
+void Client::acceptAddFriend(QString name)
+{
+    std::string message = "ADDFRIEND_" + name.toStdString() + "_" + loginName.toStdString();
+    std::cout <<  message << std::endl;
+    auto s = message.data();
+    boost::system::error_code ec;
+    sock.write_some(boost::asio::buffer(s,strlen(s)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+    }
+    friendList.append(name);
+    emit friendlistChanged();
+}
+
+void Client::quit()
+{
+    std::string message = "QUIT_" + loginName.toStdString();
+    std::cout <<  message << std::endl;
+    auto s = message.data();
+    boost::system::error_code ec;
+    sock.write_some(boost::asio::buffer(s,strlen(s)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+    }
+}
+
 //void Client::getRecord(QString name, QString s,bool b)
 //{
 //    for(int i = 0; i != conversations.size();i++)
@@ -331,7 +400,7 @@ void Client::readConversation()
         }
     }
     if(!conversations.empty()){
-//        std::cout << "buweikong" << std::endl;
+        //        std::cout << "buweikong" << std::endl;
         emit addConversations();
     }
 }
@@ -370,6 +439,10 @@ std::vector<std::string> Client::getFiles(std::string path)
     return files;
 }
 
+void Client::displayNewFriends()
+{
+}
+
 QStringList Client::friendlist()
 {
     return friendList;
@@ -385,6 +458,11 @@ QStringList Client::friendmessages()
     return friendMessages;
 }
 
+QStringList Client::newfriends()
+{
+    return newFriends;
+}
+
 void Client::processMessage(std::string message)
 {
     std::cout << message << std::endl;
@@ -393,17 +471,52 @@ void Client::processMessage(std::string message)
     if(message.find("_")){
         splictString(message,v,"_");
     }
+    if(v[0] == "FRIENDACCEPT")
+    {
+        //好友接受添加
+        friendList.append(QString::fromStdString(v[1]));
+        emit friendlistChanged();
+    }
+    if(v[0] == "FRIENDREQUEST"){
+        for(int i = 1;i != v.size();i++)
+        {
+            //在线好友请求
+            if(v[i] != "*NOMESSAGE"){
+                newFriends.append(QString::fromStdString(v[i]));
+            }
+        }
+        std::cout << "friendReauest " << newFriends.size() << std::endl;
+    }
+
     if(v[0] == "LOGINSUCCEEDED"){
         std::vector<std::string> friends;
-        splictString(v[1],friends," ");
-        for(auto i:friends){
-            QString t = QString::fromStdString(i);
-            friendList.append(t);
-            //user_friends.append(t);
-            //std::cout << (*t).toStdString()<< std::endl;
+        friendList.append(QString("New Friends"));
+        if(v.size() != 1){
+            splictString(v[1],friends," ");
+            if(!friends.empty()){
+                for(auto i:friends){
+                    QString t = QString::fromStdString(i);
+                    friendList.append(t);
+                    //user_friends.append(t);
+                    //std::cout << (*t).toStdString()<< std::endl;
+                }
+            }
+            if(v.size() > 2){
+                //离线的好友请求
+                if(v[2] == "FRIENDREQUEST"){
+                    for(int i = 3;i != v.size();i++)
+                    {
+                        newFriends.append(QString::fromStdString(v[i]));
+                    }
+                    std::cout << "friendReauest " << newFriends.size() << std::endl;
+                }
+            }
+            emit logined();
+            emit friendlistChanged();
         }
-        emit logined();
-        emit friendlistChanged();
+        else {
+            emit logined();
+        }
         receiveMessage();
         mkdirFile(loginName.toStdString());
         readConversation();
@@ -462,6 +575,14 @@ void Client::processMessage(std::string message)
     }
     else if(message == "SENDMESSAGE"){
         emit sendmessageSusseeded();
+    }else if(message == "FRIENDONTEXIST"){ //好友不存在
+        emit friendDontEXit();
+    }else if(message == "NOMESSAGE")
+    {
+//        std::cout << "fenkai" << std::endl;
+    }else if(message == "LOGGINED")
+    {
+        emit loggined();
     }
 }
 

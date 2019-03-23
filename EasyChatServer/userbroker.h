@@ -27,6 +27,7 @@ public:
 
     void addLoginUser(std::string n,std::string ip);
     void deletLoginUser(std::string n);
+    bool userLogined(std::string n);
     void printLoginUser();
 
     bool addConversation(std::string send,std::string mes,std::string recieve);
@@ -38,6 +39,9 @@ public:
     void splictString(const std::string& s, std::vector<std::string>& v, const std::string& c);
 
     std::vector<User> getUsers() const;
+
+    bool addFriend(std::string friendname,std::string requestname);
+    void addAnother(std::string sql);
 
 private:
     UserBroker();

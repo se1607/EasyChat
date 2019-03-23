@@ -15,6 +15,7 @@ App {
 //        }
 
 //    }
+    id:app
     Client {
         id:client
     }

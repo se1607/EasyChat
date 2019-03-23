@@ -26,15 +26,19 @@ Page{
             reminder.text = "Password error"
             reminder.visible = true;
         }
+        onLoggined:{
+            reminder.text = "Account Loggined"
+            reminder.visible = true;
+        }
     }
 
     Rectangle {
-      id: loginForm
-      anchors.centerIn: parent
-      color: "white"
-      width: content.width + dp(48)
-      height: content.height + dp(16)
-      radius: dp(4)
+        id: loginForm
+        anchors.centerIn: parent
+        color: "white"
+        width: content.width + dp(48)
+        height: content.height + dp(16)
+        radius: dp(4)
     }
 
     GridLayout{
@@ -67,18 +71,18 @@ Page{
         }
 
         AppText {
-          text: qsTr("Password")
-          font.pixelSize: sp(12)
+            text: qsTr("Password")
+            font.pixelSize: sp(12)
         }
 
         AppTextField {
-          id: password
-          Layout.preferredWidth: dp(200)
-          showClearButton: true
-          font.pixelSize: sp(14)
-          borderColor: Theme.tintColor
-          borderWidth: !Theme.isAndroid ? dp(2) : 0
-          echoMode: TextInput.Password
+            id: password
+            Layout.preferredWidth: dp(200)
+            showClearButton: true
+            font.pixelSize: sp(14)
+            borderColor: Theme.tintColor
+            borderWidth: !Theme.isAndroid ? dp(2) : 0
+            echoMode: TextInput.Password
         }
 
         Column{
@@ -93,8 +97,11 @@ Page{
                 onClicked: {
                     loginPage.forceActiveFocus()
                     console.debug("logging in...")
-                    client.getLoginInfo(account.text,password.text)
-                    client.sendLoginInfo()
+                    if(account.text.length != 0 && password.text.length != 0){
+                        client.getLoginInfo(account.text,password.text)
+                        client.sendLoginInfo()
+                    }
+                    reminder.visible = false
                 }
             }
 
@@ -105,6 +112,7 @@ Page{
                 onClicked: {
                     loginPage.forceActiveFocus()
                     console.log("registering...")
+                    reminder.visible = false
                     registering()
                 }
             }

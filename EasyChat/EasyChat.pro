@@ -69,4 +69,5 @@ DISTFILES += \
     qml/ConversationPage.qml \
     qml/DynamicPage.qml \
     qml/LinkManPage.qml \
-    qml/ConversationListPage.qml
+    qml/ConversationListPage.qml \
+    qml/NewFriendsPage.qml

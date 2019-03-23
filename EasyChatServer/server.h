@@ -28,11 +28,17 @@ public:
     bool waitMessage(socket_ptr sock, std::string n);
     void noMessage(socket_ptr sock);
 
+    void addfriend(std::string friendname,std::string requestname);
+
+    void acceptFriend(std::string friendname,std::string requestname);
+
     void splictString(const std::string& s, std::vector<std::string>& v, const std::string& c);
 
 private:
     std::shared_ptr<UserBroker> _userBroker;
     std::map<std::string,socket_ptr> _sock;
+//    std::map<std::string,std::string> _friendRequest;
+    std::vector<std::string> _friendRequest;
 };
 
 #endif // SERVER_H

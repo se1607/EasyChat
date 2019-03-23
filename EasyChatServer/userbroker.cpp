@@ -52,22 +52,22 @@ void UserBroker::selectAllUsers()
                 _users.push_back(User(userRows[0+i],userRows[1+i],friendsName));
             }
         }
-//        for(User a : _users)
-//        {
-//            cout << a.name() << " "
-//                 << a.password() << " ";
-//            for(string t : a.friends())
-//            {
-//                cout << t << " ";
-//            }
-//            cout << endl;
-//        }
+        //        for(User a : _users)
+        //        {
+        //            cout << a.name() << " "
+        //                 << a.password() << " ";
+        //            for(string t : a.friends())
+        //            {
+        //                cout << t << " ";
+        //            }
+        //            cout << endl;
+        //        }
         mysql_free_result(result);
         result = nullptr;
     }
     if(mysql != nullptr)
         mysql_close(mysql);
-//    mysql_library_end();
+    //    mysql_library_end();
 }
 
 bool UserBroker::insertUser(const std::string &sql)
@@ -94,21 +94,21 @@ bool UserBroker::insertUser(const std::string &sql)
 
     if(mysql != nullptr)
         mysql_close(mysql);
-//    mysql_library_end();
+    //    mysql_library_end();
 }
 
 bool UserBroker::selectUser(const std::string &n)
 {
     _users.clear();
     selectAllUsers();
-   for(User t : _users)
-   {
-       if(t.name() == n)
-       {
-           return true;
-       }
-   }
-   return false;
+    for(User t : _users)
+    {
+        if(t.name() == n)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool UserBroker::verifyPassword(const std::string n, const std::string pw)
@@ -172,9 +172,9 @@ void UserBroker::addLoginUser(std::string n, std::string ip)
     {
         if(t.name() == n)
         {
-           User a = t;
-           a.setIp(ip);
-           _loginUsers.push_back(a);
+            User a = t;
+            a.setIp(ip);
+            _loginUsers.push_back(a);
         }
     }
 }
@@ -193,6 +193,16 @@ void UserBroker::deletLoginUser(std::string n)
             ++it;
         }
     }
+}
+
+bool UserBroker::userLogined(std::string n)
+{
+    for(User t : _loginUsers)
+    {
+       if(t.name() == n)
+           return true;
+    }
+    return false;
 }
 
 void UserBroker::printLoginUser()
@@ -233,7 +243,7 @@ bool UserBroker::addConversation(std::string send, std::string mes, std::string 
 
     if(mysql != nullptr)
         mysql_close(mysql);
-//    mysql_library_end();
+    //    mysql_library_end();
 }
 
 void UserBroker::getConversation()
@@ -270,29 +280,29 @@ void UserBroker::getConversation()
             }
             for(int i = 0; i != userRows.size(); i+=4)
             {
-               Conversation c;
-               c.setSendName(userRows[0+i]);
-               c.setMessage(userRows[1+i]);
-               c.setRecieveName(userRows[2+i]);
-               if(userRows[3+i] == "0")
-                   c.setTranfser(false);
-               else
-                   c.setTranfser(true);
-               _conversation.push_back(c);
+                Conversation c;
+                c.setSendName(userRows[0+i]);
+                c.setMessage(userRows[1+i]);
+                c.setRecieveName(userRows[2+i]);
+                if(userRows[3+i] == "0")
+                    c.setTranfser(false);
+                else
+                    c.setTranfser(true);
+                _conversation.push_back(c);
             }
         }
-//        for(Conversation c : _conversation)
-//        {
-//            cout << c.getMessage() << " ";
+        //        for(Conversation c : _conversation)
+        //        {
+        //            cout << c.getMessage() << " ";
 
-//            cout << endl;
-//        }
+        //            cout << endl;
+        //        }
         mysql_free_result(result);
         result = nullptr;
     }
     if(mysql != nullptr)
         mysql_close(mysql);
-//    mysql_library_end();
+    //    mysql_library_end();
 }
 
 std::vector<Conversation> UserBroker::getTheUserMessage(std::string name)
@@ -335,7 +345,7 @@ bool UserBroker::changeMessageStatus(std::string name)
 
     if(mysql != nullptr)
         mysql_close(mysql);
-//    mysql_library_end();
+    //    mysql_library_end();
 }
 
 void UserBroker::splictString(const std::string &s, std::vector<std::string> &v, const std::string &c)
@@ -358,3 +368,95 @@ std::vector<User> UserBroker::getUsers() const
 {
     return _users;
 }
+
+bool UserBroker::addFriend(std::string friendname, std::string requestname)
+{
+    std::vector<std::string> firstFriends;
+    std::vector<std::string> secondFriends;
+
+    std::string mes1;
+    std::string mes2;
+
+    for(int i = 0; i != _users.size();i++)
+    {
+        if(_users[i].name() == friendname){
+            firstFriends = _users[i].friends();
+            if(!firstFriends.empty()){
+                for(int a = 0;a != firstFriends.size();a++)
+                {
+                    mes1 += firstFriends[a] + ",";
+                }
+            }
+
+        }
+        if(_users[i].name() == requestname){
+            secondFriends = _users[i].friends();
+            if(!secondFriends.empty()){
+                for(int a = 0;a != secondFriends.size();a++)
+                {
+                    mes2 += secondFriends[a] + ",";
+                }
+            }
+        }
+    }
+    mes1 += requestname;
+    mes2 += friendname;
+
+    std::string sql = "update user set friends = '" + mes1 + "' where name = '" + friendname + "';";
+    std::string sql1 = "update user set friends = '" + mes2 + "' where name = '" + requestname + "';";
+//    addAnother(sql1);
+    std::cout << sql << std::endl;
+    std::cout << sql1 << std::endl;
+
+    MYSQL *mysql;
+    mysql = new MYSQL;
+
+    mysql_init(mysql);
+    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0))
+    {
+        cout << "Connect MYSQL failed." << endl;
+    }
+    else{
+        cout << "Connect MYSQL successed." << endl;
+    }
+
+    if(mysql_query(mysql,sql.data())){
+        cout << "修改消息状态失败" << endl;
+        return false;
+    }
+    else{
+        if(mysql_query(mysql,sql1.data())){
+            cout << "修改消息状态失败" << endl;
+            return false;
+        }
+        return true;
+    }
+
+    if(mysql != nullptr)
+        mysql_close(mysql);
+}
+
+//void UserBroker::addAnother(std::string sql)
+//{
+//    std::string sql1 = sql;
+//    std::cout << sql1 << std::endl;
+
+//    MYSQL *mysql;
+//    mysql = new MYSQL;
+
+//    mysql_init(mysql);
+//    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0))
+//    {
+//        cout << "Connect MYSQL failed." << endl;
+//    }
+//    else{
+//        cout << "Connect MYSQL successed." << endl;
+//    }
+
+//    if(mysql_query(mysql,sql1.data())){
+//        cout << "修改消息状态失败" << endl;
+
+//    }
+//    if(mysql != nullptr)
+//        mysql_close(mysql);
+//}

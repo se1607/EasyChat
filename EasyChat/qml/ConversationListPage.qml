@@ -4,6 +4,7 @@ import QtQuick 2.0
 
 Page {
 
+    title: "Message"
     id: conversationPage
 
     property var conversationList:[]  //在对话窗口显示好友名字
@@ -13,6 +14,14 @@ Page {
 //    property var messages: []  //好友的消息
 
     property var allMessage: []
+
+    rightBarItem: IconButtonBarItem{
+        icon: IconType.poweroff
+        onClicked: {
+            dialog.visible = true
+
+        }
+    }
 
     Connections{
         target: client
@@ -72,5 +81,51 @@ Page {
         return res
     }
 
+    Rectangle{
+        id:dialog
+        width:200
+        height: 200
+        color: "white"
+        visible: false
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+
+        Column{
+
+            AppText {
+                text: qsTr("Do you want to quit?")
+                font.pixelSize: sp(12)
+                anchors.horizontalCenter: dialog.parent.horizontalCenter
+                anchors.verticalCenter: dialog.parent.verticalCenter
+            }
+
+            Row{
+
+                anchors.topMargin: dp(50)
+                AppButton{
+                    text: qsTr("Yes")
+                    flat:true
+                    anchors.verticalCenter: dialog.verticalCenter
+                    anchors.leftMargin: dp(20)
+                    onClicked: {
+                        Qt.quit()
+                        dialog.visible = false
+                    }
+                }
+
+                AppButton{
+                    text:qsTr("No")
+                    flat:true
+                    anchors.verticalCenter: dialog.verticalCenter
+                    anchors.rightMargin: dp(20)
+                    onClicked: {
+
+                        dialog.visible = false
+                    }
+                }
+
+            }
+        }
+    }
 
 }
