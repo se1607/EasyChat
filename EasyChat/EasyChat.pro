@@ -33,7 +33,8 @@ SOURCES += main.cpp \
     client.cpp \
     user.cpp \
     conversation.cpp \
-    message.cpp
+    message.cpp \
+    dynamic.cpp
 
 android {
     ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
@@ -58,7 +59,8 @@ HEADERS += \
     client.h \
     user.h \
     conversation.h \
-    message.h
+    message.h \
+    dynamic.h
 
 LIBS += -lboost_system -lboost_thread -lpthread
 
@@ -70,4 +72,6 @@ DISTFILES += \
     qml/DynamicPage.qml \
     qml/LinkManPage.qml \
     qml/ConversationListPage.qml \
-    qml/NewFriendsPage.qml
+    qml/NewFriendsPage.qml\
+    qml/DynamicRow.qml \
+

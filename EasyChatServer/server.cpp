@@ -98,6 +98,19 @@ std::string Server::processMessage(std::string message, socket_ptr sock)
     }else if (mes[0] == "QUIT") {
         _userBroker->deletLoginUser(mes[1]);
         _userBroker->printLoginUser();
+    }else if(mes[0] == "DYNAMIC"){
+        std::cout << mes[1] << mes[2] << mes[3] << std::endl;
+        _userBroker->addDynamic(mes[1],mes[2],mes[3]);
+        tranfserDynamic(mes[1],mes[2],mes[3]);
+    }else if(mes[0] == "NEWLIKE"){
+        std::cout << "?????:" << mes[1] << mes[4] << mes.size() << std::endl;
+        tranfserLike(mes[1],mes[3],mes[2],mes[4]);
+        _userBroker->updateDynamic(mes[1],mes[3],mes[2],mes[4]);
+    }else if(mes[0] == "NEWCOMMENT"){
+        _userBroker->addContent(mes[1],mes[3],mes[2],mes[4],mes[5]);
+        tranfserComment(mes[1],mes[2],mes[3],mes[4],mes[5]);
+    }else if(mes[0] == "GETCOMMENTSIGNAL"){
+        sendComment(sock);
     }
     return " ";
 }
@@ -197,7 +210,6 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
                 std::cout << boost::system::system_error(ec).what() << std::endl;
                 return;
             }
-
             //查看是否有好友请求
             if(!_friendRequest.empty())
             {
@@ -239,6 +251,9 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
                 }
             }
 
+            sendDynamic(sock,n);
+//            sendComment(sock);
+
             _userBroker->addLoginUser(n,ep.address().to_string());
             _userBroker->printLoginUser();
 
@@ -254,7 +269,6 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
             {
                 noMessage(sock);
             }
-
         }
         else {
             std::string message = "PASSWORDERROR";
@@ -337,7 +351,6 @@ void Server::tranfserMessage(std::vector<Conversation> mes,socket_ptr sock)
                         tmpMess.push_back(c.getMessage());
                         friendsMessage.push_back(tmpMess);
                     }
-
                 }
             }
         }
@@ -493,6 +506,7 @@ void Server::noMessage(socket_ptr sock)
     }
 }
 
+
 void Server::addfriend(std::string friendname, std::string requestname)
 {
     if(_userBroker->selectUser(friendname))
@@ -568,4 +582,116 @@ void Server::splictString(const std::string &s, std::vector<std::string> &v, con
     }
     if(pos1 != s.length())
         v.push_back(s.substr(pos1));
+}
+
+void Server::tranfserDynamic(std::string name, std::string content, std::string time)
+{
+    std::string friendsMsg = _userBroker->friendList(name);
+    std::vector<std::string> friends;
+    boost::system::error_code ec;
+    if(friendsMsg.find(" ")){
+        splictString(friendsMsg,friends," ");
+    }
+    for(int i=0;i!=friends.size();i++){
+        for(auto item = _sock.begin();item != _sock.end(); item++){
+            auto value = item->first;
+            if(value == friends[i]){
+                std::string message = "DYNAMIC_"+name+"_"+content+"_"+time;
+                auto s = message.data();
+                item->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+                if(ec){
+                    std::cout << boost::system::system_error(ec).what() << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void Server::tranfserLike(std::string name, std::string content, std::string time, std::string like)
+{
+    for(auto item = _sock.begin();item != _sock.end();item++){
+        boost::system::error_code ec;
+        std::string message = "UPDATELIKE_"+name+"_"+content+"_"+time+"_"+like;
+//        std::cout << "!!!!!!!!!!!~~~~~~~~~~~" << message << std::endl;
+        auto s = message.data();
+        item->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        if(ec){
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+        }
+    }
+}
+
+void Server::tranfserComment(std::string sendName, std::string time, std::string content, std::string commentName, std::string commentary)
+{
+    for(auto item=_sock.begin();item != _sock.end();item++){
+        std::string message = "NEWCOMMENTARY_"+sendName+"_"+time+"_"+content+"_"+commentName+"_"+commentary;
+        auto s = message.data();
+        boost::system::error_code ec;
+        if(item->first != " "){
+            item->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+//            std::cout << "wofageile:::" << "[" << item->first << "]" << std::endl;
+        }
+        if(ec){
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+        }
+    }
+}
+
+void Server::oneToOne(std::string sendName,std::string content,std::string time,std::string like,socket_ptr sock)
+{
+    std::string message = "DYNAMICFROM_"+sendName+"_"+content+"_"+time+"_"+like+"_";
+    auto s = message.data();
+    boost::system::error_code ec;
+    sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+    }
+}
+
+void Server::sendDynamic(socket_ptr sock, std::string n)
+{
+    _userBroker->readDynamic();
+    auto dynamic = _userBroker->getDynamic();
+    std::string friends = _userBroker->friendList(n);
+
+    std::vector<std::string> myfriend;
+    //    std::cout << "::::::::" << friends << std::endl;
+    if(friends.find(" ")){
+        splictString(friends,myfriend," ");
+    }else{
+        myfriend.push_back(friends);
+    }
+
+    if(dynamic.size()!=0){
+        for(auto &d:dynamic){
+            for(int i =0;i != myfriend.size();i++){
+                if(myfriend[i] == d.getName()){
+                    oneToOne(d.getName(),d.getContent(),d.getPushTime(),d.getLike(),sock);
+                }
+            }
+            if(n == d.getName()){
+                oneToOne(d.getName(),d.getContent(),d.getPushTime(),d.getLike(),sock);
+            }
+        }
+    }
+}
+
+void Server::sendComment(socket_ptr sock)
+{
+    _userBroker->readComment();
+    auto mycomments = _userBroker->getComment();
+
+    std::string message = "COMMENTFROM_";
+    if(mycomments.size() != 0){
+        for(auto &c:mycomments){
+            message += c;
+            message += "_";
+        }
+    }
+    boost::system::error_code ec;
+    auto s = message.data();
+    sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+    }
 }

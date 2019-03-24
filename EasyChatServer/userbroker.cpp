@@ -52,22 +52,13 @@ void UserBroker::selectAllUsers()
                 _users.push_back(User(userRows[0+i],userRows[1+i],friendsName));
             }
         }
-        //        for(User a : _users)
-        //        {
-        //            cout << a.name() << " "
-        //                 << a.password() << " ";
-        //            for(string t : a.friends())
-        //            {
-        //                cout << t << " ";
-        //            }
-        //            cout << endl;
-        //        }
         mysql_free_result(result);
         result = nullptr;
     }
     if(mysql != nullptr)
         mysql_close(mysql);
     //    mysql_library_end();
+
 }
 
 bool UserBroker::insertUser(const std::string &sql)
@@ -95,6 +86,7 @@ bool UserBroker::insertUser(const std::string &sql)
     if(mysql != nullptr)
         mysql_close(mysql);
     //    mysql_library_end();
+
 }
 
 bool UserBroker::selectUser(const std::string &n)
@@ -199,8 +191,8 @@ bool UserBroker::userLogined(std::string n)
 {
     for(User t : _loginUsers)
     {
-       if(t.name() == n)
-           return true;
+        if(t.name() == n)
+            return true;
     }
     return false;
 }
@@ -243,6 +235,7 @@ bool UserBroker::addConversation(std::string send, std::string mes, std::string 
 
     if(mysql != nullptr)
         mysql_close(mysql);
+
     //    mysql_library_end();
 }
 
@@ -345,6 +338,7 @@ bool UserBroker::changeMessageStatus(std::string name)
 
     if(mysql != nullptr)
         mysql_close(mysql);
+
     //    mysql_library_end();
 }
 
@@ -404,7 +398,7 @@ bool UserBroker::addFriend(std::string friendname, std::string requestname)
 
     std::string sql = "update user set friends = '" + mes1 + "' where name = '" + friendname + "';";
     std::string sql1 = "update user set friends = '" + mes2 + "' where name = '" + requestname + "';";
-//    addAnother(sql1);
+    //    addAnother(sql1);
     std::cout << sql << std::endl;
     std::cout << sql1 << std::endl;
 
@@ -436,27 +430,176 @@ bool UserBroker::addFriend(std::string friendname, std::string requestname)
         mysql_close(mysql);
 }
 
-//void UserBroker::addAnother(std::string sql)
-//{
-//    std::string sql1 = sql;
-//    std::cout << sql1 << std::endl;
 
-//    MYSQL *mysql;
-//    mysql = new MYSQL;
+bool UserBroker::addDynamic(std::string name, std::string content, std::string time)
+{
+    std::string like="";
+    std::string sql = "insert into dynamic(sendName,content,time,liking) values('"+name
+            +"','"+content+"','"+time+"','"+like+"');";
+    MYSQL *mysql;
+    mysql = new MYSQL;
 
-//    mysql_init(mysql);
-//    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0))
-//    {
-//        cout << "Connect MYSQL failed." << endl;
-//    }
-//    else{
-//        cout << "Connect MYSQL successed." << endl;
-//    }
+    mysql_init(mysql);
+    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0)){
+        cout << "Connect MYSQL failed." << endl;
+    }else{
+        cout << "Connect MYSQL succeed" << endl;
+    }
 
-//    if(mysql_query(mysql,sql1.data())){
-//        cout << "修改消息状态失败" << endl;
+    if(mysql_query(mysql,sql.data())){
+        cout << "Failed" << endl;
+        return false;
+    }else{
+        return true;
+    }
 
-//    }
-//    if(mysql != nullptr)
-//        mysql_close(mysql);
-//}
+    if(mysql != nullptr)
+        mysql_close(mysql);
+}
+
+bool UserBroker::addContent(std::string sendName, std::string content, std::string time, std::string contentName, std::string contentary)
+{
+    std::string sql = "insert into comments(sendName,content,pushTime,commentName,commentary) values('"+sendName
+            +"','"+content+"','"+time+"','"+contentName+"','"+ contentary+"');";
+    MYSQL *mysql;
+    mysql = new MYSQL;
+
+    mysql_init(mysql);
+    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0)){
+        cout << "Connect MYSQL failed." << endl;
+    }else{
+        cout << "Connect MYSQL successed." << endl;
+    }
+
+    if(mysql_query(mysql,sql.data())){
+        cout << "Failed" << endl;
+    }else{
+        return true;
+    }
+
+    if(mysql != nullptr)
+        mysql_close(mysql);
+}
+
+void UserBroker::readDynamic()
+{
+    _dynamic.clear();
+    MYSQL *mysql;
+    mysql = new MYSQL;
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+
+    mysql_init(mysql);
+    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0)){
+        cout << "failed" << endl;
+    }else{
+        cout << "succeed" <<endl;
+    }
+
+    std::string sql = "select * from dynamic;";
+    if(mysql_query(mysql,sql.data())){
+        cout << "Get data failed." << endl;
+    }else{
+        result = mysql_use_result(mysql);
+        while(1){
+            row = mysql_fetch_row(result);
+            if(row == nullptr) break;
+            vector<string> userRows;
+            for(unsigned int i=0;i<mysql_num_fields(result);++i){
+                userRows.push_back(string(row[i]));
+            }
+            for(int i=0;i != userRows.size(); i+=4){
+                Dynamic d;
+                d.setPushName(userRows[0+i]);
+                d.setPushContent(userRows[1+i]);
+                d.setPushTime(userRows[2+i]);
+                d.setLike(userRows[3+i]);
+                _dynamic.push_back(d);
+            }
+        }
+        mysql_free_result(result);
+        result = nullptr;
+    }
+    if(mysql != nullptr)
+        mysql_close(mysql);
+}
+
+void UserBroker::readComment()
+{
+    _comments.clear();
+    MYSQL *mysql;
+    mysql = new MYSQL;
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+
+    mysql_init(mysql);
+
+    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0)){
+        cout << "failed" << endl;
+    }else{
+        cout << "succeed" << endl;
+    }
+
+    string sql = "select * from comments";
+    if(mysql_query(mysql,sql.data())){
+        cout << "Get comments data failed" << endl;
+    }else{
+        result = mysql_use_result(mysql);
+        while(1){
+            row = mysql_fetch_row(result);
+            if(row == nullptr) break;
+            vector<string> useRows;
+            for(unsigned i=0;i<mysql_num_fields(result);++i){
+                useRows.push_back(row[i]);
+            }
+            for(int i=0;i != useRows.size();i+=5){
+                string comment;
+                comment = useRows[0+i]+"_"+useRows[1+i]+"_"
+                        +useRows[2+i]+"_"+useRows[3+i]+"_"+useRows[4+i];
+                cout << comment << endl;
+                _comments.push_back(comment);
+            }
+        }
+        mysql_free_result(result);
+        result = nullptr;
+    }
+    if(mysql != nullptr){
+        mysql_close(mysql);
+    }
+}
+
+bool UserBroker::updateDynamic(std::string name, std::string content, std::string time, std::string like)
+{
+    //    cout << name << "wo shou dao le ma" << content << "---" << like << "---" << endl;
+    std::string sql = "update dynamic set liking='"+like+"' where content='"+content+"' and sendName='"+name+"' and time='"+time+"';";
+    MYSQL *mysql;
+    mysql = new MYSQL;
+    mysql_init(mysql);
+    if(!mysql_real_connect(mysql,"localhost","root","root","EasyChat",0,NULL,0)){
+        cout << "connect MYSQL failed" << endl;
+    }else{
+        cout << "connect MYSQL succeed" << endl;
+    }
+    if(mysql_query(mysql,sql.data())){
+        cout << "query failed" << endl;
+        return false;
+    }else{
+        return true;
+    }
+    if(mysql != nullptr){
+        mysql_close(mysql);
+    }
+}
+
+std::vector<Dynamic> UserBroker::getDynamic()
+{
+    return _dynamic;
+}
+
+std::vector<std::string> UserBroker::getComment()
+{
+    return _comments;
+}
+

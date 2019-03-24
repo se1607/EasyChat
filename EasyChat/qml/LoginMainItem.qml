@@ -2,12 +2,36 @@ import QtQuick 2.0
 import VPlayApps 1.0
 
 Item {
+    id:lmi
     anchors.fill: parent
 
     property bool userLoggedIn: false
     property bool userRegisterIn: false
 
-    LoginPage{
+    property var dynamiclist:[]
+    property var likelist:[]
+    property var commentlist:[]
+
+//    signal readCommentary/*(var sn,var t,var c,var cn,var com)*/
+
+    Connections {
+        target: client
+        onDbDyn:{
+            dynamiclist = client.getdbdynamic()
+            likelist = client.getdblike()
+        }
+        onNewComment:{
+            console.log(sn,t,c,cn,comment)
+            commentlist.push(sn)
+            commentlist.push(t)
+            commentlist.push(c)
+            commentlist.push(cn)
+            commentlist.push(comment)
+//            readCommentary(/*sn,t,c,cn,comment*/)
+        }
+    }
+
+    LoginPage {
         id:loginpage
         z:1
         visible: opacity > 0
@@ -48,7 +72,7 @@ Item {
                    NavigationStack {
                        //splitView: tablet
                        ConversationListPage {
-                            id:converlist
+
                        }
                    }
                } // navigation item
@@ -65,11 +89,16 @@ Item {
                } // navigation item
 
                NavigationItem{
+                   id:dynamic
+//                   property alias ns:ns
                    title:"Dynamic"
                    icon: IconType.empire
 
                    NavigationStack {
-                       DynamicPage{}
+                       id:ns
+                       DynamicPage{
+                           id:dynamicpage
+                       }
                    }
                }
        } // navigation

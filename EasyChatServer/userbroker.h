@@ -3,6 +3,7 @@
 
 #include "relationalbroker.h"
 #include <map>
+#include "dynamic.h"
 
 class User;
 class Conversation;
@@ -27,7 +28,9 @@ public:
 
     void addLoginUser(std::string n,std::string ip);
     void deletLoginUser(std::string n);
+
     bool userLogined(std::string n);
+
     void printLoginUser();
 
     bool addConversation(std::string send,std::string mes,std::string recieve);
@@ -41,7 +44,15 @@ public:
     std::vector<User> getUsers() const;
 
     bool addFriend(std::string friendname,std::string requestname);
-    void addAnother(std::string sql);
+
+    bool addDynamic(std::string name,std::string content,std::string time);
+    bool addContent(std::string sendName, std::string content, std::string time, std::string contentName, std::string contentary);
+
+    void readDynamic();
+    void readComment();
+    bool updateDynamic(std::string name,std::string content,std::string time,std::string like);
+    std::vector<Dynamic> getDynamic();
+    std::vector<std::string> getComment();
 
 private:
     UserBroker();
@@ -49,6 +60,8 @@ private:
     std::vector<User> _users;
     std::vector<User> _loginUsers;
     std::vector<Conversation> _conversation;
+    std::vector<Dynamic> _dynamic;
+    std::vector<std::string> _comments;
 };
 
 #endif // USERBROKER_H

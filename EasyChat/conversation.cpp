@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 
+
 Conversation::Conversation()
 {
 
@@ -10,10 +11,12 @@ Conversation::Conversation()
 QString Conversation::getName() const
 {
     return friendname;
+
 }
 
 void Conversation::setName(const QString &value)
 {
+
     friendname = value;
 }
 
@@ -104,3 +107,4 @@ void Conversation::writeFile(std::string sendname, std::string recievename, std:
         write.close();
     }
 }
+

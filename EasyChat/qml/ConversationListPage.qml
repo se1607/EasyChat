@@ -1,4 +1,3 @@
-
 import VPlayApps 1.0
 import QtQuick 2.0
 
@@ -51,7 +50,7 @@ Page {
     Component {
         id: detailPageComponent
 
-        ConversationPage{
+        ConversationPage {
             id:lp
             newMsgs: allMessage
             person: tmpname
