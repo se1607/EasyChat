@@ -41,9 +41,12 @@ public:
     std::vector<User> getUsers() const;
 
     bool addDynamic(std::string name,std::string content,std::string time);
+    bool addContent(std::string sendName, std::string content, std::string time, std::string contentName, std::string contentary);
     void readDynamic();
+    void readComment();
     bool updateDynamic(std::string name,std::string content,std::string time,std::string like);
     std::vector<Dynamic> getDynamic();
+    std::vector<std::string> getComment();
 
 private:
     UserBroker();
@@ -52,6 +55,7 @@ private:
     std::vector<User> _loginUsers;
     std::vector<Conversation> _conversation;
     std::vector<Dynamic> _dynamic;
+    std::vector<std::string> _comments;
 };
 
 #endif // USERBROKER_H

@@ -96,10 +96,14 @@ std::string Server::processMessage(std::string message, socket_ptr sock)
         _userBroker->addDynamic(mes[1],mes[2],mes[3]);
         tranfserDynamic(mes[1],mes[2],mes[3]);
     }else if(mes[0] == "NEWLIKE"){
-        //        nctl
         std::cout << "?????:" << mes[1] << mes[4] << mes.size() << std::endl;
         tranfserLike(mes[1],mes[3],mes[2],mes[4]);
         _userBroker->updateDynamic(mes[1],mes[3],mes[2],mes[4]);
+    }else if(mes[0] == "NEWCOMMENT"){
+        _userBroker->addContent(mes[1],mes[3],mes[2],mes[4],mes[5]);
+        tranfserComment(mes[1],mes[2],mes[3],mes[4],mes[5]);
+    }else if(mes[0] == "GETCOMMENTSIGNAL"){
+        sendComment(sock);
     }
     return " ";
 }
@@ -184,6 +188,7 @@ void Server::userLogin(std::string n, std::string pw, socket_ptr sock)
                 return;
             }
             sendDynamic(sock,n);
+//            sendComment(sock);
             _userBroker->addLoginUser(n,ep.address().to_string());
             _userBroker->printLoginUser();
 
@@ -281,7 +286,6 @@ void Server::tranfserMessage(std::vector<Conversation> mes,socket_ptr sock)
                         tmpMess.push_back(c.getMessage());
                         friendsMessage.push_back(tmpMess);
                     }
-
                 }
             }
         }
@@ -481,9 +485,25 @@ void Server::tranfserLike(std::string name, std::string content, std::string tim
     for(auto item = _sock.begin();item != _sock.end();item++){
         boost::system::error_code ec;
         std::string message = "UPDATELIKE_"+name+"_"+content+"_"+time+"_"+like;
-        std::cout << "!!!!!!!!!!!~~~~~~~~~~~" << message << std::endl;
+//        std::cout << "!!!!!!!!!!!~~~~~~~~~~~" << message << std::endl;
         auto s = message.data();
         item->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+        if(ec){
+            std::cout << boost::system::system_error(ec).what() << std::endl;
+        }
+    }
+}
+
+void Server::tranfserComment(std::string sendName, std::string time, std::string content, std::string commentName, std::string commentary)
+{
+    for(auto item=_sock.begin();item != _sock.end();item++){
+        std::string message = "NEWCOMMENTARY_"+sendName+"_"+time+"_"+content+"_"+commentName+"_"+commentary;
+        auto s = message.data();
+        boost::system::error_code ec;
+        if(item->first != " "){
+            item->second->write_some(boost::asio::buffer(s,strlen(s)),ec);
+//            std::cout << "wofageile:::" << "[" << item->first << "]" << std::endl;
+        }
         if(ec){
             std::cout << boost::system::system_error(ec).what() << std::endl;
         }
@@ -526,5 +546,25 @@ void Server::sendDynamic(socket_ptr sock, std::string n)
                 oneToOne(d.getName(),d.getContent(),d.getPushTime(),d.getLike(),sock);
             }
         }
+    }
+}
+
+void Server::sendComment(socket_ptr sock)
+{
+    _userBroker->readComment();
+    auto mycomments = _userBroker->getComment();
+
+    std::string message = "COMMENTFROM_";
+    if(mycomments.size() != 0){
+        for(auto &c:mycomments){
+            message += c;
+            message += "_";
+        }
+    }
+    boost::system::error_code ec;
+    auto s = message.data();
+    sock->write_some(boost::asio::buffer(s,strlen(s)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
     }
 }

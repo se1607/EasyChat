@@ -32,9 +32,11 @@ public:
 
     void tranfserDynamic(std::string name,std::string content,std::string time);
     void tranfserLike(std::string name,std::string content,std::string time,std::string like);
+    void tranfserComment(std::string sendName,std::string time,std::string content,std::string commentName,std::string commentary);
     void sendDynamic(socket_ptr sock,std::string n);
+    void sendComment(socket_ptr sock);
     void oneToOne(std::string sendName, std::string content, std::string time, std::string like, socket_ptr sock);
-    void haveReadSignal(socket_ptr sock);
+//    void haveReadSignal(socket_ptr sock);
 private:
     std::shared_ptr<UserBroker> _userBroker;
     std::map<std::string,socket_ptr> _sock;

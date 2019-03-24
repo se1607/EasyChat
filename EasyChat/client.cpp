@@ -164,11 +164,21 @@ void Client::sendmylike(QString sendName,QString time,QString content,QString ne
     //    emit newLike(newlikes);
 }
 
+void Client::getNewComment(QString sendName, QString time, QString content, QString commentName, QString commentary)
+{
+    std::string mes = "NEWCOMMENT_" + sendName.toStdString() + "_" + time.toStdString() + "_" + content.toStdString() + "_" + commentName.toStdString() + "_" + commentary.toStdString();
+//    std::cout << mes << std::endl;
+    auto m = mes.data();
+    boost::system::error_code ec;
+    sock.write_some(boost::asio::buffer(m,strlen(m)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+    }
+}
+
 void Client::getSendMessage(const QString &n1, const QString &n2)
 {
     std::string message = "CONVERSATION_" + loginName.toStdString() + "_" + n1.toStdString() + "_" + n2.toStdString();
-    //    std::cout << "-------------" << std::endl;
-    std::cout <<  message << std::endl;
     auto s = message.data();
     boost::system::error_code ec;
     sock.write_some(boost::asio::buffer(s,strlen(s)),ec);
@@ -253,6 +263,18 @@ QStringList Client::friendmessages()
     return friendMessages;
 }
 
+void Client::receiveComment()
+{
+    std::string message = "GETCOMMENTSIGNAL_";
+    auto s = message.data();
+    boost::system::error_code ec;
+    sock.write_some(boost::asio::buffer(s,strlen(s)),ec);
+    if(ec){
+        std::cout << boost::system::system_error(ec).what() << std::endl;
+    }
+    receiveMessage();
+}
+
 void Client::processMessage(std::string message)
 {
     //    std::cout << message << std::endl;
@@ -312,6 +334,7 @@ void Client::processMessage(std::string message)
         }
         std::cout << dynamiclist.size() <<std::endl;
         emit dbDyn();
+        receiveComment();
     }
     if(v[0] == "UPDATELIKE"){
         QString n = QString::fromStdString(v[1]);
@@ -324,8 +347,34 @@ void Client::processMessage(std::string message)
             QString lll = QString::fromStdString(v[8]);
             emit newLike(n,c,t,lll);
         }
+    }
+    if(v[0] == "NEWCOMMENTARY"){
+        QString sn = QString::fromStdString(v[1]);
+        QString t = QString::fromStdString(v[2]);
+        QString c = QString::fromStdString(v[3]);
+        QString cn = QString::fromStdString(v[4]);
+        if(v.size() == 6){
+            QString comment = QString::fromStdString(v[5]);
+            emit newComment(sn,t,c,cn,comment);
+        }else if(v.size() == 11){
+            QString comment = QString::fromStdString(v[10]);
+            emit newComment(sn,t,c,cn,comment);
+        }
         for(int i=0;i<v.size();i++){
-            std::cout << i << ": " << v[i] << "---" << std::endl;
+            std::cout << i << ":::    " << v[i] << std::endl;
+        }
+    }
+    if(v[0] == "COMMENTFROM"){
+//        for(auto &vvv:v){
+//            std::cout << vvv << std::endl;
+//        }
+        for(int i=1;i < v.size();i+=5){
+            QString sn = QString::fromStdString(v[i]);
+            QString t = QString::fromStdString(v[i+1]);
+            QString c = QString::fromStdString(v[i+2]);
+            QString cn = QString::fromStdString(v[i+3]);
+            QString commentary = QString::fromStdString(v[i+4]);
+            emit newComment(sn,t,c,cn,commentary);
         }
     }
 

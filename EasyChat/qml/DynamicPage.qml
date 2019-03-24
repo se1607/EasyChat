@@ -22,17 +22,13 @@ ListPage {
         target:client
         onNewDynamic:{
             l.insert(0,{picture:"$",name:n,time:t,message:c})
-            //            l.append()
         }
-        //        onDbDyn:{
-        //            console.log("hhhhhh1")
-        //        }
     }
 
     rightBarItem: IconButtonBarItem{
         icon:IconType.plus
         onClicked: InputDialog.inputTextMultiLine(app,qsTr("New Dynamic"),qsTr("Enter text..."),function(ok,text){
-            if(ok)
+            if(ok && text!=="")
             {
                 //                addDynamic(text)
                 var years = date.getFullYear()

@@ -2,6 +2,7 @@ import QtQuick 2.0
 import VPlayApps 1.0
 
 Item {
+    id:lmi
     anchors.fill: parent
 
     property bool userLoggedIn: false
@@ -9,13 +10,24 @@ Item {
 
     property var dynamiclist:[]
     property var likelist:[]
+    property var commentlist:[]
+
+//    signal readCommentary/*(var sn,var t,var c,var cn,var com)*/
 
     Connections {
         target: client
         onDbDyn:{
             dynamiclist = client.getdbdynamic()
             likelist = client.getdblike()
-//            console.log(dynamiclist[0])
+        }
+        onNewComment:{
+            console.log(sn,t,c,cn,comment)
+            commentlist.push(sn)
+            commentlist.push(t)
+            commentlist.push(c)
+            commentlist.push(cn)
+            commentlist.push(comment)
+//            readCommentary(/*sn,t,c,cn,comment*/)
         }
     }
 

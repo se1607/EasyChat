@@ -32,6 +32,7 @@ public:
     Q_INVOKABLE QStringList getdbdynamic();
     Q_INVOKABLE QStringList getdblike();
     Q_INVOKABLE void sendmylike(QString sendName, QString time, QString content, QString newlikes);
+    Q_INVOKABLE void getNewComment(QString sendName,QString time,QString content,QString commentName,QString commentary);
 //    Q_INVOKABLE void writeLike(QString n);
 
     void receiveMessage();
@@ -44,6 +45,8 @@ public:
 
     QStringList conversationlist() const;
     QStringList friendmessages();
+
+    void receiveComment();
 signals:
     void registersucceeded();
     void registerfailed();
@@ -54,12 +57,13 @@ signals:
     void friendlistChanged();
     void conversationListChanged();
     void sendmessageSusseeded();
-    void addConversations();
+    void addConversalikeListtions();
     void friendmessagesChanged();
-
+    void addConversations();
     void newDynamic(QString n,QString c,QString t);
     void dbDyn();
     void newLike(QString n,QString c,QString t,QString lll);
+    void newComment(QString sn,QString t,QString c,QString cn,QString comment);
 private:
     QString registerName;
     QString registerPassword;
@@ -71,6 +75,7 @@ private:
     QStringList friendMessages;
     QStringList dynamicList;
     QStringList likeList;
+    QStringList commentList;
     std::vector<Dynamic> dynamiclist;
 };
 
