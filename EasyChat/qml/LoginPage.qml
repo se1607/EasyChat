@@ -15,18 +15,22 @@ Page{
         onLogined:{
             reminder.text = "Logined"
             loginSucceeded()
+            reminder.visible = false
             //f = client.getFriends()
             //console.log(f[0])
         }
         onLoginnameerror:{
+            console.log("kanzheli")
             reminder.text = "User doesn't exist"
             reminder.visible = true;
         }
         onLoginpassworderror:{
+            console.log("kanzheli")
             reminder.text = "Password error"
             reminder.visible = true;
         }
         onLoggined:{
+            console.log("kanzheli")
             reminder.text = "Account Loggined"
             reminder.visible = true;
         }
@@ -101,7 +105,6 @@ Page{
                         client.getLoginInfo(account.text,password.text)
                         client.sendLoginInfo()
                     }
-                    reminder.visible = false
                 }
             }
 

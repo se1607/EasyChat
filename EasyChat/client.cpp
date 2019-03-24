@@ -370,6 +370,9 @@ void Client::splictString(std::string &s, std::vector<std::string> &v, const std
 
 void Client::mkdirFile(std::string userName)
 {
+    std::string path = "./" + userName;
+    if(opendir(path.data()) != NULL)
+        return;
     std::string name = userName;
     std::string command = "mkdir " + name;
     system(command.c_str());
