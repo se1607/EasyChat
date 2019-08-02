@@ -6,7 +6,7 @@
 #include <dirent.h>
 
 boost::asio::io_service service;
-boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("10.253.128.111"),PORT);
+boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("10.253.25.97"),PORT);
 boost::asio::ip::tcp::socket sock(service);
 boost::asio::ip::tcp::socket sock_fileTransfer(service);
 
